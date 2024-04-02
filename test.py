@@ -2,6 +2,7 @@ import pyttsx3
 import re
 from pydub import AudioSegment
 from pydub.generators import Sine
+import json
 
 def speak_with_pauses(text, rate=150):
     # Regular expression for pause keyword and duration
@@ -32,6 +33,8 @@ def speak_with_pauses(text, rate=150):
         i += 2
 
     audio_segments = []
+    durations = []  # to store the duration of each segment
+
     engine = pyttsx3.init()
     engine.setProperty('rate', rate)
 
@@ -41,15 +44,26 @@ def speak_with_pauses(text, rate=150):
 
         audio_segment = AudioSegment.from_wav("temp.wav")
         audio_segments.append(audio_segment)
+        duration = len(audio_segment) / 1000  # convert milliseconds to seconds
+        durations.append(duration)
 
         if pause_duration > 0:
             silence_segment = Sine(0).to_audio_segment(duration=pause_duration)  # Convert to milliseconds
             audio_segments.append(silence_segment)
+            durations.append(pause_duration / 1000)  # convert milliseconds to seconds
 
     # Concatenate audio segments
     output_audio = audio_segments[0]
     for segment in audio_segments[1:]:
         output_audio = output_audio.append(segment, crossfade=0)
+
+    # Create JSON object to store duration data
+    duration_json = {}
+    for i, dur in enumerate(durations):
+        duration_json[f"Segment {i+1}"] = dur
+
+    with open('pause_durations.json', 'w') as json_file:
+        json.dump(duration_json, json_file, indent=4)
 
     return output_audio
 
