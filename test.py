@@ -5,47 +5,34 @@ from pydub.generators import Sine
 import json
 
 def speak_with_pauses(text, rate=150):
-    # Regular expression for pause keyword and duration
-    pause_regex = r"PAUSE\s+(\d+)"
+    # Regular expression for asset and pause durations
+    asset_pause_regex = r'{(?:\s*"asset"\s*:\s*"([^"]*)"?\s*,)?\s*"pause"\s*:\s*(\d+)\s*}'
 
-    sentences = []
-    pause_durations = []
-
-    # Split the text into sentences
-    parts = re.split(pause_regex, text)
-
-    # Iterate over the parts
-    i = 0
-    while i < len(parts):
-        part = parts[i].strip()
-
-        # Check if it's not empty
-        if part:
-            sentences.append(part)
-
-        # Check if there's a pause duration following the part
-        if i + 1 < len(parts) and parts[i + 1]:
-            pause_durations.append(int(parts[i + 1]))
-        else:
-            pause_durations.append(0)  # No pause for non-pause parts
-
-        # Move to the next part
-        i += 2
+    segments = re.split(asset_pause_regex, text)
+    print('segments', segments)
 
     audio_segments = []
-    durations = []  # to store the duration of each segment
+    durations = []
+    asset_list = []
 
     engine = pyttsx3.init()
     engine.setProperty('rate', rate)
 
-    for sentence, pause_duration in zip(sentences, pause_durations):
-        engine.save_to_file(sentence, 'temp.wav')
-        engine.runAndWait()
+    for i in range(1, len(segments), 3):
+        sentence = segments[i-1].strip()
+        pause_duration = int(segments[i+1])
+        asset = segments[i] 
 
-        audio_segment = AudioSegment.from_wav("temp.wav")
-        audio_segments.append(audio_segment)
-        duration = len(audio_segment) / 1000  # convert milliseconds to seconds
-        durations.append(duration)
+        if sentence:
+            engine.save_to_file(sentence, 'temp.wav')
+            engine.runAndWait()
+
+            audio_segment = AudioSegment.from_wav("temp.wav")
+            audio_segments.append(audio_segment)
+            duration = len(audio_segment) / 1000  # convert milliseconds to seconds
+            durations.append(duration)
+        
+        asset_list.append({"time": sum(durations), "asset": asset})
 
         if pause_duration > 0:
             silence_segment = Sine(0).to_audio_segment(duration=pause_duration)  # Convert to milliseconds
@@ -65,10 +52,13 @@ def speak_with_pauses(text, rate=150):
     with open('pause_durations.json', 'w') as json_file:
         json.dump(duration_json, json_file, indent=4)
 
-    return output_audio
+    # Export the audio
+    output_audio.export("final_audio_with_pauses.mp3", format="mp3")
+    print("Audio exported successfully.")
+
+    return output_audio, asset_list
 
 # Example usage
-text = """The challenges have forged our skills. [PAUSE 1000] Our latest creation is a testament to the passion and dedication that drives us. [PAUSE 2000] Stay tuned as we unveil more updates and behind-the-scenes glimpses."""
-output_audio = speak_with_pauses(text, 150)
-output_audio.export("final_audio_with_pauses.mp3", format="mp3")
-print("Audio exported successfully.")
+text = """The challenges have forged our skills. { "pause": 1000 } Our latest creation is a testament to the passion and dedication that drives us. { "asset": "outro.mp4", "pause": 2000 } Stay tuned as we unveil more updates and behind-the-scenes glimpses."""
+output_audio, asset_list = speak_with_pauses(text, 150)
+print("Asset list:", asset_list)
