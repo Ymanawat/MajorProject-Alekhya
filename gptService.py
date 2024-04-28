@@ -1,27 +1,14 @@
+from openai import OpenAI
+
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+import asyncio
+
+from openai import ChatCompletion
 
 load_dotenv()
 
-def initialize_model():
-    try:
-        api_key = os.getenv('GEMINI_API_KEY')
-        # print(api_key)
-        if api_key is None:
-            raise ValueError("API key not found. Make sure it's set in the .env file.")
-
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-pro')
-
-        return model
-
-    except Exception as e:
-        print(f"An error occurred during model initialization: {e}")
-        return None
-
-#initialize model
-model = initialize_model()
+client = OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
 
 base_prompt = """
 You are a Youtube video script writer,  here is a rough script written by me i want a better script don't incldue any of the prefix telling who is speaking like ( Developer: "Hey everyone ) nor any of the narration or scene setup related sentences like 
@@ -38,13 +25,8 @@ for 100ms of pause of 500ms requierd then {"PAUSE": 500} and so on.
 these are the video file names that are being used in the script, you have to put the assets in the script wherever required, these video file names
 shows what is in the file so whenever the text is related to some files then use them before that sentence. like if a filename is "sunset.mp4", and in the sentence we are talking about the sunset so you have to use that asset like this: {"asset":"sunset.mp4", "pause": 100}.
 use 100 pause always when you are using some video filename
-video_file_names : [ASSETS]
+video_file_names : [FILENAMES]
 
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
 > * Important: never use some random filename as asset, only use which are given to you in video_file_names
 > * Important: never use some random filename as asset, only use which are given to you in video_file_names
 
@@ -55,35 +37,36 @@ example:
     output:
     {"asset": "welcome.mp4", "pause": 100 }Welcome back, folks! Today, we're going to discuss a fundamental aspect of game development: collision detection. {"asset": "collision_detection", "PAUSE": 100} Now, you might be wondering, what exactly is collision detection? {"PAUSE": 200} Well, it's the process of determining when two objects in a game world intersect or come into contact with each other. {"PAUSE": 200} This might sound straightforward, but trust me, there's a bit more to it than meets the eye. {"PAUSE": 300} Let's delve deeper into this topic and explore how we can implement collision detection in our game. {"PAUSE": 300}
 
-
 Rough Script:
 """
 
-def generate_text(input_text, fileNames):
+async def generate_text(input_text, fileNames):
     try:
-        if model is None:
-            raise ValueError("Model is not initialized")
-
         file_names_string = ', '.join(fileNames)
-        print(fileNames)
-        print(file_names_string)
+        print('input_text in generate_text', input_text)
+        content = base_prompt.replace("FILENAMES", file_names_string)
+        content += input_text
 
-        base_prompt.replace("ASSETS", file_names_string)
+        print(content)
 
-        print(base_prompt)
-        contents=base_prompt+input_text
-        # print(contents)
-        response = model.generate_content(contents=contents)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": content}],
+            max_tokens=150,
+            temperature=0.7,
+            stop=None
+        )
 
-        processed_text = response.text.strip()
-        print(processed_text)
+        print(response)
 
+        processed_text = response.choices[0].message.content
         return processed_text
 
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
 
-input_text = "Hey everyone, welcome back to our game dev log. Today, I'm excited to share with you the progress we've made on our latest project. It's been an incredible journey so far, filled with late nights, endless lines of code, and more cups of coffee than I can count. But seeing our vision come to life makes it all worth it. From brainstorming ideas to sketching out character designs, every step of the way has been a labor of love. And let me tell you, the challenges we've faced along the way have only made us stronger as a team. Whether it's debugging tricky code or fine-tuning game mechanics, we've tackled each obstacle head-on, fueled by our passion for creating something truly special. So stick around as we dive deeper into the development process, sharing insights, tips, and maybe even a sneak peek or two. Thanks for joining us on this adventure, and remember, the journey is just as important as the destination. Happy gaming, everyone!"
-# generated_text = generate_text(input_text,  ['intro.mp4', 'brainstorming.mp4', 'debugging.mp4', 'outro.mp4'])
+# input_text = "Hey everyone, welcome back to our game dev log. Today, I'm excited to share with you the progress we've made on our latest project. It's been an incredible journey so far, filled with late nights, endless lines of code, and more cups of coffee than I can count. But seeing our vision come to life makes it all worth it. From brainstorming ideas to sketching out character designs, every step of the way has been a labor of love. And let me tell you, the challenges we've faced along the way have only made us stronger as a team. Whether it's debugging tricky code or fine-tuning game mechanics, we've tackled each obstacle head-on, fueled by our passion for creating something truly special. So stick around as we dive deeper into the development process, sharing insights, tips, and maybe even a sneak peek or two. Thanks for joining us on this adventure, and remember, the journey is just as important as the destination. Happy gaming, everyone!"
+
+# generated_text = asyncio.run(generate_text(input_text, ['welcome.mp4', 'debugging.mp4']))
 # print(generated_text)

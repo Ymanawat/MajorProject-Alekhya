@@ -1,7 +1,18 @@
-from moviepy.editor import VideoClip, concatenate_videoclips, AudioFileClip, VideoFileClip
+import cv2
 import numpy as np
+from moviepy.editor import VideoClip, concatenate_videoclips, AudioFileClip, VideoFileClip
 
-def concatenate_videos_with_audio(audio_path='final_audio_with_pauses.mp3', objects=[{"time": 1.689, "asset": "welcome.mp4"}, {"time": 5, "asset": "collision_detection.mp4"}], output_path="output_video.mp4"):
+def resize_clip(clip, width=1920, height=1080):
+    # Convert MoviePy clip to OpenCV-compatible format
+    frames = [clip.get_frame(t) for t in np.arange(0, clip.duration, 1 / clip.fps)]
+    resized_frames = [cv2.resize(frame, (width, height)) for frame in frames]
+    
+    # Create a new MoviePy clip with the resized frames
+    resized_clip = VideoClip(lambda t: resized_frames[int(t * clip.fps)], duration=clip.duration)
+
+    return resized_clip
+
+def concatenate_videos_with_audio(audio_path='final_audio_with_pauses.mp3', assets_time_list=[{"time": 1.689, "asset": "welcome.mp4"}, {"time": 5, "asset": "collision_detection.mp4"}], output_path="output_video.mp4"):
     print("Starting concatenation process...")
     
     # Create a blank background video clip
@@ -16,7 +27,7 @@ def concatenate_videos_with_audio(audio_path='final_audio_with_pauses.mp3', obje
     last_timestamp = 0
     
     # Iterate over the array of objects
-    for item in objects:
+    for item in assets_time_list:
         # Get the time and asset from the current object
         time = item['time']
         asset = item['asset']
@@ -30,13 +41,15 @@ def concatenate_videos_with_audio(audio_path='final_audio_with_pauses.mp3', obje
         blank_clip = VideoClip(make_frame, duration=duration)
         
         # Append the blank clip to the list of clips
-        video_clips_to_concatenate.append(blank_clip)
+        # video_clips_to_concatenate.append(blank_clip)
         
         complete_path = f"{base_path}/{asset}"
         
         # Load the video clip for the current asset
         if asset is not None:
             insert_clip = VideoFileClip(complete_path).subclip(time)
+            # Resize the video clip to fit the main frame size using OpenCV
+            insert_clip = resize_clip(insert_clip, width=insert_clip.size[0], height=insert_clip.size[1])
             video_clips_to_concatenate.append(insert_clip)
         
         last_timestamp = time
@@ -59,5 +72,5 @@ def concatenate_videos_with_audio(audio_path='final_audio_with_pauses.mp3', obje
     
     print("Concatenation process completed successfully!")
 
-
-concatenate_videos_with_audio()
+# Call the function with desired parameters
+# concatenate_videos_with_audio()

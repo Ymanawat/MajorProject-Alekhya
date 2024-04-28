@@ -39,7 +39,6 @@ def speak_and_save(text, output_filename, rate=150):
   # engine.save_to_file(modified_text, output_filename)
   engine.runAndWait()
 
-
 import re
 import time
 import pyttsx3
@@ -64,7 +63,7 @@ def speak_with_pauses(text, rate=150):
             pause_durations.append(0)
         i += 2
 
-    audio = AudioSegment.empty()
+    audio_segments = []
     for i, sentence in enumerate(sentences):
         engine.say(sentence)
         engine.runAndWait()
@@ -74,10 +73,20 @@ def speak_with_pauses(text, rate=150):
             if pause_duration > 0:
                 silence_segment = AudioSegment.silent(duration=pause_duration)
                 sentence_audio += silence_segment
-        audio += sentence_audio
+        audio_segments.append(sentence_audio)
 
-    output_file = "final_audio_with_pauses.mp3"
-    audio.export(output_file, format="mp3")
+    temp_dir = "tempAudios"
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+
+    for i, segment in enumerate(audio_segments):
+        segment.export(os.path.join(temp_dir, f"segment_{i}.wav"), format="wav")
+
+    output_file = "final_audio_with_pauses.wav"
+    combined_audio = AudioSegment.empty()
+    for segment in audio_segments:
+        combined_audio += segment
+    combined_audio.export(output_file, format="wav")
 
     if os.path.exists(output_file) and os.path.getsize(output_file) > 0:
         print("Audio exported successfully.")
@@ -87,8 +96,8 @@ def speak_with_pauses(text, rate=150):
     return sentences, pause_durations
 
 # Example usage
-text = """The challenges have forged our skills, and we're thrilled to share the fruits of our labor. PAUSE 100 Our latest creation is a testament to the passion and dedication that drives us. PAUSE 1000 Stay tuned as we unveil more updates and behind-the-scenes glimpses. Thank you for joining us on this incredible adventure."""
-sentences, pause_durations = speak_with_pauses(text)
+# text = """The challenges have forged our skills, and we're thrilled to share the fruits of our labor. PAUSE 100 Our latest creation is a testament to the passion and dedication that drives us. PAUSE 1000 Stay tuned as we unveil more updates and behind-the-scenes glimpses. Thank you for joining us on this incredible adventure."""
+# sentences, pause_durations = speak_with_pauses(text)
 
-print("Sentences:", sentences)
-print("Pause Durations (ms):", pause_durations)
+# print("Sentences:", sentences)
+# print("Pause Durations (ms):", pause_durations)

@@ -20,8 +20,6 @@ def get_video_filenames(folder_path="assets/videos"):
   return video_filenames
 
 # Example usage
-video_filenames = get_video_filenames()
+# video_filenames = get_video_filenames()
 
-print(f"Video filenames in 'folder_path':")
-for filename in video_filenames:
-  print(filename)
+# print(f"Video filenames in 'folder_path':", video_filenames)

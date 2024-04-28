@@ -56,9 +56,9 @@ def speak_with_pauses(text, rate=150):
     output_audio.export("final_audio_with_pauses.mp3", format="mp3")
     print("Audio exported successfully.")
 
-    return output_audio, asset_list
+    return ['final_audio_with_pauses.mp3', asset_list]
 
 # Example usage
-text = """The challenges have forged our skills. { "pause": 1000 } Our latest creation is a testament to the passion and dedication that drives us. { "asset": "outro.mp4", "pause": 2000 } Stay tuned as we unveil more updates and behind-the-scenes glimpses."""
-output_audio, asset_list = speak_with_pauses(text, 150)
-print("Asset list:", asset_list)
+# test_text = """Welcome back  {"asset": "welcome.mp4", "pause": 100 } folks! Today, we're going to discuss a fundamental aspect of game development: collision detection. {"asset": "collision_detection.mp4", "pause": 100} Now, you might be wondering, what exactly is collision detection? {"pause": 200} Well, it's the process of determining when two objects in a game world intersect or come into contact with each other. {"pause": 200} This might sound straightforward, but trust me, there's a bit more to it than meets the eye. {"pause": 300} Let's delve deeper into this topic and explore how we can implement collision detection in our game. {"pause": 300}"""
+# output_audio, asset_list = speak_with_pauses(test_text, 150)
+# print("Asset list:", asset_list)
