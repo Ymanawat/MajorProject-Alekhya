@@ -34,11 +34,11 @@ async def create_item(script_data: ScriptData):
     script = script_data.script
     improved_script = await improve_script(script)
     print(script_data)
-    res = await speak_with_pauses(improved_script)
+    res = speak_with_pauses(improved_script)
     output_audio = res[0]
     asset_list = res[1]
     # [output_audio, asset_list]
-    concatenate_videos_with_audio(output_audio, asset_list, 'ass')
+    concatenate_videos_with_audio(output_audio, asset_list)
     return
 
 if __name__ == "__main__":

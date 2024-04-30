@@ -9,8 +9,10 @@ def save_uploaded_files(uploaded_files):
             f.write(uploaded_file.getbuffer())
         st.success(f"Saved file: {uploaded_file.name}")
 
-async def main():
+def main():
     st.title("Alekhyaa - Text to video solution")
+    delete_all_files_in_directory()
+    delete_files()
 
     # Textarea for entering text
     text_input = st.text_area("Enter your text here:")
@@ -19,10 +21,6 @@ async def main():
     media_files = st.file_uploader("Upload Images or Videos", type=['jpg', 'jpeg', 'png', 'gif', 'mp4'], accept_multiple_files=True)
 
     if st.button("Submit"):
-        
-        await delete_all_files_in_directory()
-        await delete_files()
-
         if text_input:
             st.write("Entered Text:", text_input)
         if media_files:
@@ -57,7 +55,7 @@ async def main():
 
         # save_uploaded_files(media_files)  
 
-async def delete_files(files = ["output_video.mp4", "temp.wav", "final_audio_with_pauses.mp3"]):
+def delete_files(files=["output_video.mp4", "temp.wav", "final_audio_with_pauses.mp3", "pause_durations.json"]):
     for file in files:
         try:
             os.remove(file)
@@ -67,7 +65,16 @@ async def delete_files(files = ["output_video.mp4", "temp.wav", "final_audio_wit
         except Exception as e:
             print(f"Error deleting file {file}: {e}")
 
-async def delete_all_files_in_directory(directory='assets/video'):
+def delete_all_files_in_directory(directory='assets/videos'):
+    try:
+        for file_name in os.listdir(directory):
+            file_path = os.path.join(directory, file_name)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                print(f"Deleted file: {file_path}")
+    except Exception as e:
+        print(f"Error deleting files in directory {directory}: {e}")
+
     try:
         for file_name in os.listdir(directory):
             file_path = os.path.join(directory, file_name)

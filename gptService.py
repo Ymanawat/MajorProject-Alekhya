@@ -19,8 +19,8 @@ The script must sound humanic so use simple and verbel words only. use some of t
 filler_words = ["Um", "Uh", "Huh", "Well", "So", "You know", "Like", "Ah", "Okay", "Right"]
 
 use curly braces to tell about which asset should be used now or how much pause is required between these sentence as these will be used for the voicevers
-{"PAUSE": 100} to tell the the tts that here requuire pause while speaking naturally like humans, have a pause after each sections
-for 100ms of pause of 500ms requierd then {"PAUSE": 500} and so on.
+"pause" to tell the the tts that here requuire pause while speaking naturally like humans, have a pause after each sections
+for 100ms of pause of 500ms requierd then { "asset" : "...", "pause": 500, "sentence": "..."} and so on.
 
 these are the video file names that are being used in the script, you have to put the assets in the script wherever required, these video file names
 shows what is in the file so whenever the text is related to some files then use them before that sentence. like if a filename is "sunset.mp4", and in the sentence we are talking about the sunset so you have to use that asset like this: {"asset":"sunset.mp4", "pause": 100}.
@@ -30,12 +30,18 @@ video_file_names : [FILENAMES]
 > * Important: never use some random filename as asset, only use which are given to you in video_file_names
 > * Important: never use some random filename as asset, only use which are given to you in video_file_names
 
+---start of example
+
 example:
     input:
     Hey everyone, in this tutorial, I'm going to show you how to implement a basic enemy AI in our game. Right now, our enemies just wander around randomly, which isn't very challenging for the player. So, let's dive into the code and make our enemies smarter by adding a simple pathfinding algorithm.
 
     output:
-    {"asset": "welcome.mp4", "pause": 100 }Welcome back, folks! Today, we're going to discuss a fundamental aspect of game development: collision detection. {"asset": "collision_detection", "PAUSE": 100} Now, you might be wondering, what exactly is collision detection? {"PAUSE": 200} Well, it's the process of determining when two objects in a game world intersect or come into contact with each other. {"PAUSE": 200} This might sound straightforward, but trust me, there's a bit more to it than meets the eye. {"PAUSE": 300} Let's delve deeper into this topic and explore how we can implement collision detection in our game. {"PAUSE": 300}
+    [{"asset": "welcome.mp4", "pause": 100, "sentence": "Welcome back, folks! Today, we're going to discuss a fundamental aspect of game development: collision detection."}, {"asset": "collision_detection", "pause": 100, "sentence": "Now, you might be wondering, what exactly is collision detection?}, {"pause": 200, "sentence": "Well, it's the process of determining when two objects in a game world intersect or come into contact with each other."}, {"pause": 200, "sentence": "This might sound straightforward, but trust me, there's a bit more to it than meets the eye."} {"pause": 300, "sentence": "Let's delve deeper into this topic and explore how we can implement collision detection in our game."}]
+
+---end of example
+
+I only want a valid json in response like [ { "asset" : "...", "pause" : "...", "sentence" : "..."} ]
 
 Rough Script:
 """
@@ -52,14 +58,13 @@ async def generate_text(input_text, fileNames):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": content}],
-            max_tokens=150,
+            # max_tokens=150,
             temperature=0.7,
             stop=None
         )
 
-        print(response)
-
         processed_text = response.choices[0].message.content
+        print(processed_text)
         return processed_text
 
     except Exception as e:

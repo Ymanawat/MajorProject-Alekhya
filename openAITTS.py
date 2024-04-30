@@ -1,15 +1,12 @@
-import pyttsx3
-import re
+from pathlib import Path
 from pydub import AudioSegment
 from pydub.generators import Sine
 import json
+from openai import OpenAI
+import tempfile
 
-def speak_with_pauses(text, rate=150):
-    # Regular expression pattern to capture asset, pause, and sentence
-    segments = json.loads(text)
-    print(segments)
-    # Find all segments using the regular expression pattern
-    # segments = re.findall(asset_pause_regex, text)
+def speak_with_pauses(segments_json, rate=150):
+    segments = json.loads(segments_json)
 
     # Initialize the result array
     result = []
@@ -18,20 +15,23 @@ def speak_with_pauses(text, rate=150):
     durations = []
     asset_list = []
 
-    engine = pyttsx3.init()
-    engine.setProperty('rate', rate)
+    client = OpenAI()
 
     for i in range(1, len(segments)):
-        print(segments[i-1])
         sentence = segments[i-1].get('sentence')
         pause_duration = segments[i-1].get('pause')
         asset = segments[i-1].get('asset')
 
         if sentence:
-            engine.save_to_file(sentence, 'temp.wav')
-            engine.runAndWait()
-
-            audio_segment = AudioSegment.from_wav("temp.wav")
+            response = client.audio.speech.create(
+                model="tts-1",
+                voice="alloy",
+                input=sentence
+            )
+            with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_audio_file:
+                temp_audio_file.write(response.content)
+                temp_audio_file.close()
+                audio_segment = AudioSegment.from_file(temp_audio_file.name)
             audio_segments.append(audio_segment)
             duration = len(audio_segment) / 1000  # convert milliseconds to seconds
             durations.append(duration)
@@ -63,6 +63,13 @@ def speak_with_pauses(text, rate=150):
     return ['final_audio_with_pauses.mp3', asset_list]
 
 # Example usage
-# test_text = """Welcome back  {"asset": "welcome.mp4", "pause": 100 } folks! Today, we're going to discuss a fundamental aspect of game development: collision detection. {"asset": "collision_detection.mp4", "pause": 100} Now, you might be wondering, what exactly is collision detection? {"pause": 200} Well, it's the process of determining when two objects in a game world intersect or come into contact with each other. {"pause": 200} This might sound straightforward, but trust me, there's a bit more to it than meets the eye. {"pause": 300} Let's delve deeper into this topic and explore how we can implement collision detection in our game. {"pause": 300}"""
-# output_audio, asset_list = speak_with_pauses(test_text, 150)
-# print("Asset list:", asset_list)
+# test_text = """[
+#     {"sentence": "Welcome back folks!", "asset": "welcome.mp4", "pause": 100},
+#     {"sentence": "Today, we're going to discuss a fundamental aspect of game development: collision detection.", "asset": "collision_detection.mp4", "pause": 100},
+#     {"sentence": "Now, you might be wondering, what exactly is collision detection?", "pause": 1000},
+#     {"sentence": "Well, it's the process of determining when two objects in a game world intersect or come into contact with each other.", "pause": 200},
+#     {"sentence": "This might sound straightforward, but trust me, there's a bit more to it than meets the eye.", "pause": 300},
+#     {"sentence": "Let's delve deeper into this topic and explore how we can implement collision detection in our game.", "pause": 300}
+# ]"""
+# output_ = speak_with_pauses(test_text, 150)
+# print("Asset list:", output_[1])

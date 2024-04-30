@@ -2,6 +2,15 @@ import cv2
 import numpy as np
 from moviepy.editor import VideoClip, concatenate_videoclips, AudioFileClip, VideoFileClip
 
+# Load default image
+default_image = cv2.imread('default_image.jpg')
+
+# Create a blank background video clip
+def make_frame(t):
+    # Return default image frame
+    return default_image if default_image is not None else np.zeros((1080, 1920, 3), dtype=np.uint8)
+
+
 def resize_clip(clip, width=1920, height=1080):
     # Convert MoviePy clip to OpenCV-compatible format
     frames = [clip.get_frame(t) for t in np.arange(0, clip.duration, 1 / clip.fps)]
@@ -12,14 +21,8 @@ def resize_clip(clip, width=1920, height=1080):
 
     return resized_clip
 
-def concatenate_videos_with_audio(audio_path='final_audio_with_pauses.mp3', assets_time_list=[{"time": 1.689, "asset": "welcome.mp4"}, {"time": 5, "asset": "collision_detection.mp4"}], output_path="output_video.mp4"):
+def concatenate_videos_with_audio(audio_path='final_audio_with_pauses.mp3', assets_time_list=[{"time": 1.689, "asset": "welcome.mp4"}, {"time": 5, "asset": None}], output_path="output_video.mp4", files =[]):
     print("Starting concatenation process...")
-    
-    # Create a blank background video clip
-    def make_frame(t):
-        # Create a black frame
-        width, height = 1920, 1080  # assuming HD resolution
-        return np.zeros((height, width, 3), dtype=np.uint8)
     
     # Initialize variables
     video_clips_to_concatenate = []
@@ -41,12 +44,11 @@ def concatenate_videos_with_audio(audio_path='final_audio_with_pauses.mp3', asse
         blank_clip = VideoClip(make_frame, duration=duration)
         
         # Append the blank clip to the list of clips
-        # video_clips_to_concatenate.append(blank_clip)
-        
-        complete_path = f"{base_path}/{asset}"
+        video_clips_to_concatenate.append(blank_clip)
         
         # Load the video clip for the current asset
-        if asset is not None:
+        if asset is not None and len(files):
+            complete_path = f"{base_path}/{asset}"
             insert_clip = VideoFileClip(complete_path).subclip(time)
             # Resize the video clip to fit the main frame size using OpenCV
             insert_clip = resize_clip(insert_clip, width=insert_clip.size[0], height=insert_clip.size[1])
