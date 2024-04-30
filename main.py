@@ -2,6 +2,8 @@ import os
 from typing import Optional
 
 from combiner import concatenate_videos_with_audio # type: ignore
+from google_image import image_search
+from gptServiceToGetKeywords import getTheKeywordsFromScriptGPT
 from test import speak_with_pauses # type: ignore
 import uvicorn
 from fastapi import FastAPI
@@ -9,6 +11,7 @@ from pydantic import BaseModel
 
 from getVideosFromAssets import get_video_filenames
 from gptService import generate_text
+# from geminiScript import generate_text
 from xtts import speak, speak_and_save
 
 # """welcome, game developers. Today we are going to discuss the fundamental concept of game dev, collision detection."""
@@ -19,6 +22,13 @@ text = """Welcome back, folks! Today, we're going to discuss a fundamental aspec
 
 def improve_script(script):
     videoFiles = get_video_filenames()
+    
+    if len(videoFiles) == 0:
+        keywords = getTheKeywordsFromScriptGPT(script)
+        for keyword in keywords:
+            image_search(keyword)
+    
+    videoFiles = get_video_filenames()
     imp_script = generate_text(script, videoFiles)
     return imp_script
 
@@ -28,17 +38,19 @@ class ScriptData(BaseModel):
 app = FastAPI()
 
 @app.post("/convert-to-video")
-async def create_item(script_data: ScriptData):
+def create_item(script_data: ScriptData):
     # print(script_data)
 
     script = script_data.script
-    improved_script = await improve_script(script)
-    print(script_data)
+    improved_script = improve_script(script)
+    print(improved_script)
     res = speak_with_pauses(improved_script)
     output_audio = res[0]
     asset_list = res[1]
     # [output_audio, asset_list]
-    concatenate_videos_with_audio(output_audio, asset_list)
+    videoFiles = get_video_filenames()
+    print('video files in main', videoFiles)
+    concatenate_videos_with_audio(assets_time_list=asset_list, audio_path=output_audio, files=videoFiles)
     return
 
 if __name__ == "__main__":

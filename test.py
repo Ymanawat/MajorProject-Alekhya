@@ -18,10 +18,14 @@ def speak_with_pauses(text, rate=150):
     durations = []
     asset_list = []
 
+    silence_segment = Sine(0).to_audio_segment(duration=0.1)  # Convert to milliseconds
+    audio_segments.append(silence_segment)
+    durations.append(0.1)
+
     engine = pyttsx3.init()
     engine.setProperty('rate', rate)
 
-    for i in range(1, len(segments)):
+    for i in range(1, len(segments)+1):
         print(segments[i-1])
         sentence = segments[i-1].get('sentence')
         pause_duration = segments[i-1].get('pause')
@@ -36,7 +40,7 @@ def speak_with_pauses(text, rate=150):
             duration = len(audio_segment) / 1000  # convert milliseconds to seconds
             durations.append(duration)
         
-        asset_list.append({"time": sum(durations), "asset": asset})
+        asset_list.append({"time": sum(durations[:-1]), "asset": asset})
 
         if pause_duration > 0:
             silence_segment = Sine(0).to_audio_segment(duration=pause_duration)  # Convert to milliseconds

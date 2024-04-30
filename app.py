@@ -2,6 +2,7 @@ import time
 import streamlit as st
 import os
 import requests
+import shutil
 
 def save_uploaded_files(uploaded_files):
     for uploaded_file in uploaded_files:
@@ -21,9 +22,11 @@ def main():
     media_files = st.file_uploader("Upload Images or Videos", type=['jpg', 'jpeg', 'png', 'gif', 'mp4'], accept_multiple_files=True)
 
     if st.button("Submit"):
+        st.write("Processing your input...")  # Moved here to display after submit button
         if text_input:
             st.write("Entered Text:", text_input)
         if media_files:
+            save_uploaded_files(media_files)  
             for media_file in media_files:
                 file_details = {"FileName": media_file.name, "FileType": media_file.type}
                 st.write(file_details)
@@ -38,7 +41,7 @@ def main():
         print(response)
 
         if response.status_code == 200:
-            st.write("API request successful. Processing...")
+            st.write("API request successful. Here is your output video")
         else:
             st.write("Error: API request failed.")
             return
@@ -50,10 +53,7 @@ def main():
                 st.video(output_video_path)
                 break  # Exit the loop once the video is found
             else:
-                st.write("Processing your input...")
                 time.sleep(1)  # Adjust the sleep duration as needed
-
-        # save_uploaded_files(media_files)  
 
 def delete_files(files=["output_video.mp4", "temp.wav", "final_audio_with_pauses.mp3", "pause_durations.json"]):
     for file in files:
@@ -67,20 +67,14 @@ def delete_files(files=["output_video.mp4", "temp.wav", "final_audio_with_pauses
 
 def delete_all_files_in_directory(directory='assets/videos'):
     try:
-        for file_name in os.listdir(directory):
-            file_path = os.path.join(directory, file_name)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-                print(f"Deleted file: {file_path}")
-    except Exception as e:
-        print(f"Error deleting files in directory {directory}: {e}")
-
-    try:
-        for file_name in os.listdir(directory):
-            file_path = os.path.join(directory, file_name)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-                print(f"Deleted file: {file_path}")
+        for item in os.listdir(directory):
+            item_path = os.path.join(directory, item)
+            if os.path.isfile(item_path):
+                os.remove(item_path)
+                print(f"Deleted file: {item_path}")
+            elif os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+                print(f"Deleted folder and its content: {item_path}")
     except Exception as e:
         print(f"Error deleting files in directory {directory}: {e}")
 

@@ -15,7 +15,7 @@ def get_video_filenames(folder_path="assets/videos"):
   video_filenames = []
   for filename in os.listdir(absolute_path):
     # Check if the filename ends with a common video extension (modify as needed)
-    if filename.lower().endswith((".mp4", ".avi", ".mkv", ".wmv")):
+    if filename.lower().endswith((".mp4", ".avi", ".mkv", ".wmv", ".jpg", ".png", ".jpeg")):
       video_filenames.append(filename)
   return video_filenames
 

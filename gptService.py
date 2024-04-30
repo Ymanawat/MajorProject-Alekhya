@@ -22,13 +22,20 @@ use curly braces to tell about which asset should be used now or how much pause 
 "pause" to tell the the tts that here requuire pause while speaking naturally like humans, have a pause after each sections
 for 100ms of pause of 500ms requierd then { "asset" : "...", "pause": 500, "sentence": "..."} and so on.
 
-these are the video file names that are being used in the script, you have to put the assets in the script wherever required, these video file names
+these are the Assets file names that are being used in the script, you have to put the assets in the script wherever required, these video file names
 shows what is in the file so whenever the text is related to some files then use them before that sentence. like if a filename is "sunset.mp4", and in the sentence we are talking about the sunset so you have to use that asset like this: {"asset":"sunset.mp4", "pause": 100}.
-use 100 pause always when you are using some video filename
-video_file_names : [FILENAMES]
+If there are multiple images in the assets like for let say lion we have [lion_0.jpg, lion_1.jpg, lion_2.jpg], and we have a sentence in which we are talking about lion and no other assets matches that well then use these imgages alternatively in that sentence like : [{"asset":"lion_0.jpb", "pause": 100, "sentence": "The lion, with its majestic mane and powerful roar,"}, {"asset":"lion.jpg", "pause": 100, "sentence" :"reigns as the undisputed king of the savanna, embodying strength, courage, and regal grace."} ]
 
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
+use 100 or more pause always when you are using some Assets filename, use pause according the condition of the sentence i want pause so that the sound of these sentence be more realistic and humanic
+
+--Assets to use in the output, you have to use only these asset names nothing else, not any name provided else than these
+
+ASSETS (YOU HAVE TO USE ONLY THESE ASSETS IN THE OUTPUT) : [FILENAMES]
+
+--End of Assets to use in the output
+
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
 
 ---start of example
 
@@ -46,7 +53,7 @@ I only want a valid json in response like [ { "asset" : "...", "pause" : "...", 
 Rough Script:
 """
 
-async def generate_text(input_text, fileNames):
+def generate_text(input_text, fileNames):
     try:
         file_names_string = ', '.join(fileNames)
         print('input_text in generate_text', input_text)

@@ -32,29 +32,57 @@ The script must sound humanic so use simple and verbel words only. use some of t
 filler_words = ["Um", "Uh", "Huh", "Well", "So", "You know", "Like", "Ah", "Okay", "Right"]
 
 use curly braces to tell about which asset should be used now or how much pause is required between these sentence as these will be used for the voicevers
-{"PAUSE": 100} to tell the the tts that here requuire pause while speaking naturally like humans, have a pause after each sections
-for 100ms of pause of 500ms requierd then {"PAUSE": 500} and so on.
+"pause" to tell the the tts that here requuire pause while speaking naturally like humans, have a pause after each sections
+for 100ms of pause of 500ms requierd then { "asset" : "...", "pause": 500, "sentence": "..."} and so on.
 
-these are the video file names that are being used in the script, you have to put the assets in the script wherever required, these video file names
+these are the Assets file names that are being used in the script, you have to put the assets in the script wherever required, these video file names
 shows what is in the file so whenever the text is related to some files then use them before that sentence. like if a filename is "sunset.mp4", and in the sentence we are talking about the sunset so you have to use that asset like this: {"asset":"sunset.mp4", "pause": 100}.
-use 100 pause always when you are using some video filename
-video_file_names : [ASSETS]
+If there are multiple images in the assets like for let say lion we have [lion_0.jpg, lion_1.jpg, lion_2.jpg], and we have a sentence in which we are talking about lion and no other assets matches that well then use these imgages alternatively in that sentence like : [{"asset":"lion_0.jpb", "pause": 100, "sentence": "The lion, with its majestic mane and powerful roar,"}, {"asset":"lion.jpg", "pause": 100, "sentence" :"reigns as the undisputed king of the savanna, embodying strength, courage, and regal grace."} ]
 
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
-> * Important: never use some random filename as asset, only use which are given to you in video_file_names
+use 100 or more pause always when you are using some Assets filename, use pause according the condition of the sentence i want pause so that the sound of these sentence be more realistic and humanic
+
+--Assets to use in the output
+
+ASSETS : [FILENAMES]
+
+--End of Assets to use in the output
+
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+> * Important: never use some random filename as asset, only use which are given to you in ASSETS
+
+
+---start of example
 
 example:
     input:
     Hey everyone, in this tutorial, I'm going to show you how to implement a basic enemy AI in our game. Right now, our enemies just wander around randomly, which isn't very challenging for the player. So, let's dive into the code and make our enemies smarter by adding a simple pathfinding algorithm.
 
     output:
-    {"asset": "welcome.mp4", "pause": 100 }Welcome back, folks! Today, we're going to discuss a fundamental aspect of game development: collision detection. {"asset": "collision_detection", "PAUSE": 100} Now, you might be wondering, what exactly is collision detection? {"PAUSE": 200} Well, it's the process of determining when two objects in a game world intersect or come into contact with each other. {"PAUSE": 200} This might sound straightforward, but trust me, there's a bit more to it than meets the eye. {"PAUSE": 300} Let's delve deeper into this topic and explore how we can implement collision detection in our game. {"PAUSE": 300}
+    [{"asset": "welcome.mp4", "pause": 100, "sentence": "Welcome back, folks! Today, we're going to discuss a fundamental aspect of game development: collision detection."}, {"asset": "collision_detection", "pause": 100, "sentence": "Now, you might be wondering, what exactly is collision detection?}, {"pause": 200, "sentence": "Well, it's the process of determining when two objects in a game world intersect or come into contact with each other."}, {"pause": 200, "sentence": "This might sound straightforward, but trust me, there's a bit more to it than meets the eye."} {"pause": 300, "sentence": "Let's delve deeper into this topic and explore how we can implement collision detection in our game."}]
 
+---end of example
+
+I only want a valid json in response like [ { "asset" : "...", "pause" : "...", "sentence" : "..."} ]
 
 Rough Script:
 """
@@ -68,11 +96,10 @@ def generate_text(input_text, fileNames):
         print(fileNames)
         print(file_names_string)
 
-        base_prompt.replace("ASSETS", file_names_string)
+        base_prompt_modified = base_prompt.replace("FILENAMES", file_names_string)
 
-        print(base_prompt)
-        contents=base_prompt+input_text
-        # print(contents)
+        contents=base_prompt_modified+input_text
+        print(contents)
         response = model.generate_content(contents=contents)
 
         processed_text = response.text.strip()
