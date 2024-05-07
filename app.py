@@ -12,8 +12,6 @@ def save_uploaded_files(uploaded_files):
 
 def main():
     st.title("Alekhyaa - Text to video solution")
-    delete_all_files_in_directory()
-    delete_files()
 
     # Textarea for entering text
     text_input = st.text_area("Enter your text here:")
@@ -22,18 +20,20 @@ def main():
     media_files = st.file_uploader("Upload Images or Videos", type=['jpg', 'jpeg', 'png', 'gif', 'mp4'], accept_multiple_files=True)
 
     if st.button("Submit"):
+        delete_all_files_in_directory()
+        delete_files()
         st.write("Processing your input...")  # Moved here to display after submit button
         if text_input:
             st.write("Entered Text:", text_input)
         if media_files:
             save_uploaded_files(media_files)  
-            for media_file in media_files:
-                file_details = {"FileName": media_file.name, "FileType": media_file.type}
-                st.write(file_details)
-                if 'image' in media_file.type:
-                    st.image(media_file, caption='Uploaded Image', use_column_width=True)
-                elif 'video' in media_file.type:
-                    st.video(media_file)
+            # for media_file in media_files:
+            #     file_details = {"FileName": media_file.name, "FileType": media_file.type}
+                # st.write(file_details)
+                # if 'image' in media_file.type:
+                #     st.image(media_file, caption='Uploaded Image', use_column_width=True)
+                # elif 'video' in media_file.type:
+                    # st.video(media_file)
 
         # Make API POST request
         api_url = "http://localhost:8000/convert-to-video"

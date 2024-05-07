@@ -1,3 +1,4 @@
+import json
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -10,7 +11,7 @@ client = OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
 def initialize_model():
     try:
         api_key = os.getenv('GEMINI_API_KEY')
-        # print(api_key)
+
         if api_key is None:
             raise ValueError("API key not found. Make sure it's set in the .env file.")
 
@@ -23,36 +24,37 @@ def initialize_model():
         print(f"An error occurred during model initialization: {e}")
         return None
 
-#initialize model
+#for initializing the gemini model
 model = initialize_model()
 
 base_prompt = """
-You are a expert script analyzer, Your task is to extract keywords from the script and reponse with an array of those keywords like : ["keyword1", "keyword2", "keyword3",...]
+Your task is to analyze the script and extract relevant keywords. Provide an array containing these keywords, ensuring they capture the essence of the script while minimizing redundancy. Each keyword should represent a distinct concept or object discussed in the script.
 
-How to extract keywords? 
-To Extract keywords you have to analyse the sentences and if any sentence talk about something like some object person or doing something i want that as keyword from that sentence the keyword can also be a small string like "man_drinking_tea", "lion", "walking"
-I want only the bare minimum keywords no need to add a lot of keywords only atmost 5 which suits the script and condition and actions in that script.
+the output should be like an of those keywords like : ["keyword1", "keyword2", "keyword3",...]
 
-But if there is less sentences than 5 then give me only the keywords that are necessary only 2-3. I want less keywords always but i also want them to be a little descriptive not just keys like "proud", "mane", "majesty". instead i want like "the_proud_lion", "lion_Majesty_of_jungle"
+for example if there are three sentence talking about lion only then only one lion should in in the keyword array for those three sentences no need to mention that keyword multiple time.
 
 i want object as prefix like if we are talking about lion i want lion in all the keywords related to that, if we are talking about car i want car in all the keywords, if talking about game want game in all the keywords
+
+Limit the number of keywords per topic to a maximum of five, unless there are fewer than five sentences discussing a particular topic. In such cases, include only 2-3 keywords that are essential for understanding the topic.
+
+avoid overly generic keywords like 'proud' or 'majesty'. 'nice', 'good', 'round' and so on. Just use object or the action in the script.
 
 Script to analyze:
 
 """
 
+# this function is used when we want to use Gemini LLLM
 def getTheKeywordsFromScriptGemini(input_text):
     try:
         response = model.generate_content(contents=base_prompt+input_text)
 
+        print(response)
+
         processed_text = response.text.strip()
 
         # Remove the square brackets and split the string at commas
-        array = processed_text[1:-1].split(', ')
-
-        # Remove double quotes from each element
-        array = [element.strip('"') for element in array]
-        print(array)
+        array = json.loads(processed_text)
 
         return array
 
@@ -60,13 +62,14 @@ def getTheKeywordsFromScriptGemini(input_text):
         print(f"An error occurred: {e}")
         return None
 
+# this function is used when we want to use GPT
 def getTheKeywordsFromScriptGPT(input_text):
     content=base_prompt+input_text
     response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-0125",
             messages=[{"role": "user", "content": content}],
             # max_tokens=150,
-            temperature=0.7,
+            temperature=0.4,
             stop=None
         )
 
@@ -81,6 +84,6 @@ def getTheKeywordsFromScriptGPT(input_text):
 
     return array
 
-input_text = "In the jungle's heart, the Lion reigns supreme, his roar echoing his royal decree. With a mane of gold, he rules with majesty untold."
-
-getTheKeywordsFromScriptGemini(input_text)
+# example test
+# input_text = "In the jungle's heart, the Lion reigns supreme, his roar echoing his royal decree. With a mane of gold, he rules with majesty untold."
+# getTheKeywordsFromScriptGemini(input_text)

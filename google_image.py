@@ -28,8 +28,7 @@ def save_images(query: str, data: list):
         else:
             print(f"Failed to download image {index+1}")
 
-def image_search(query: str): # Change this line
-
+def image_search(query: str):
     print ("search image : ", query)
     # Check if query is valid
     if not query:
@@ -37,26 +36,18 @@ def image_search(query: str): # Change this line
     
     # Construct GET request to Custom Search JSON API
     url = "https://www.googleapis.com/customsearch/v1/"
-    # url = "https://cse.google.com/cse?cx=60e8c83068bc84aeb"
     
     params = {
-        "key" : "AIzaSyBk1hnUgyo4mvymxCoOGh0OKB0Nbsh9I-4",
-        "cx": "a11f34733f1f44863",
-        "q": query, # Query parameter from user
+        "key" : "AIzaSyBfyl02BzXUZhV9oG6t0zl9TwB9oxVPwEU",
+        "cx": "45d20a3a4e2c04bc6",
+        "q": query,
         "searchType": "image",
         "num": 2
     }
 
-    # params = {
-    #     "key" : "AIzaSyCsWAb0PSkUA_hdU8BHwcw_RwxtrBPo2tY",
-    #     # "key": "AIzaSyCsWAb0PSkUA_hdU8BHwcw_RwxtrBPo2tY",
-    #     "cx": "60e8c83068bc84aeb",
-    #     "q": query, # Query parameter from user
-    #     "searchType": "image",
-    #     "num": 2
-    # }
     response = requests.get(url, params=params)
     # Check if response is valid
+    print(response)
     if response.status_code != 200:
         return {"error": response.json().get("error")}
     # Parse JSON response and extract relevant information
@@ -66,11 +57,12 @@ def image_search(query: str): # Change this line
     results = []
     for item in items:
         result = {
-            "image_url": item.get("link"),
+            "image_url": item.get("image_url") if item.get("image_url") else item.get("link"),
             "title": item.get("title"),
         }
         results.append(result)
         
+    print(results)
     # Create a JSON output file from the results
     with open("results.json", "w") as outfile:
         json.dump(results, outfile)

@@ -1,4 +1,5 @@
 import cv2
+import os
 import numpy as np
 from moviepy.editor import VideoClip, concatenate_videoclips, AudioFileClip, ImageClip, VideoFileClip
 
@@ -6,14 +7,32 @@ from moviepy.editor import VideoClip, concatenate_videoclips, AudioFileClip, Ima
 default_image = cv2.imread('default_image.jpg')
 
 # Create a blank background video clip
-def make_frame(t):
+def make_frame(t):  
     # Return default image frame
     return default_image if default_image is not None else np.zeros((1080, 1920, 3), dtype=np.uint8)
 
 # Function to create a video clip from an image file
 def create_image_clip(image_path, duration):
-    image = ImageClip(image_path, duration=duration)
-    return image
+    # Extract the filename from the image_path
+    filename = os.path.splitext(os.path.basename(image_path))[0]
+    
+    # Get the directory of the image_path
+    directory = os.path.dirname(image_path)
+    
+    # Iterate through files in the directory
+    for file in os.listdir(directory):
+        # Extract the filename without extension for each file in the directory
+        file_without_extension = os.path.splitext(os.path.basename(file))[0]
+        # Check if filename (without extension) matches the name of any file in the directory
+        if filename == file_without_extension:
+            # Construct the full path for the matching file
+            matching_file_path = os.path.join(directory, file)
+            # Load the image using the matching file path
+            image = ImageClip(matching_file_path, duration=duration)
+            return image
+    
+    # If no matching file is found, return None or handle the error as needed
+    return None
 
 def concatenate_videos_with_audio(assets_time_list=[{"time": 1.689, "asset": "welcome.mp4"}, {"time": 5, "asset": None}], output_path="output_video.mp4", files=[], audio_path='final_audio_with_pauses.mp3'):
     print("Starting concatenation process...")
@@ -22,7 +41,7 @@ def concatenate_videos_with_audio(assets_time_list=[{"time": 1.689, "asset": "we
     video_clips_to_concatenate = []
     base_path = "assets/videos"
     last_timestamp = 0
-    last_non_none_asset = None
+    last_non_none_asset = default_image
     audio_clip = None
     duration = None
 
@@ -63,12 +82,20 @@ def concatenate_videos_with_audio(assets_time_list=[{"time": 1.689, "asset": "we
         if len(files) > 0:
             complete_path = f"{base_path}/{asset}"
             print(complete_path)
-            if asset.endswith(".mp4"):
-                insert_clip = VideoFileClip(complete_path).subclip(t_start=0, t_end=duration)
-            elif asset.endswith(".jpg") or asset.endswith(".png"):
-                insert_clip = create_image_clip(complete_path, duration)
+            if asset is not None:
+                if asset.endswith(".mp4") or asset.endswith(".mkv"):
+                    insert_clip = VideoFileClip(complete_path).subclip(t_start=0, t_end=duration)
+                elif asset.endswith(".jpg") or asset.endswith(".png") or asset.endswith(".png"):
+                    insert_clip = create_image_clip(complete_path, duration)
+                else:
+                    continue
             else:
-                continue  # Unsupported format, skip this asset
+                if last_non_none_asset.endswith(".mp4") or last_non_none_asset.endswith(".mkv"):
+                    insert_clip = VideoFileClip(complete_path).subclip(t_start=0, t_end=duration)
+                elif last_non_none_asset.endswith(".jpg") or last_non_none_asset.endswith(".png") or last_non_none_asset.endswith(".png"):
+                    insert_clip = create_image_clip(complete_path, duration)
+                else:
+                    continue
                 
             insert_clip = insert_clip.resize(width=1920, height=1080)
             video_clips_to_concatenate.append(insert_clip)

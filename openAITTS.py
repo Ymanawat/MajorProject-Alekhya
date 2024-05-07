@@ -7,17 +7,23 @@ import tempfile
 
 def speak_with_pauses(segments_json, rate=150):
     segments = json.loads(segments_json)
+    # JSONIFY all the segments given by LLM
+    segments = json.loads(segments_json)
+    print(segments)
 
-    # Initialize the result array
-    result = []
-
+    # initialized variables
     audio_segments = []
     durations = []
     asset_list = []
 
+    # adding a silence of 10 second to initialize the audio
+    silence_segment = Sine(0).to_audio_segment(duration=0.1)  # Convert to milliseconds
+    audio_segments.append(silence_segment)
+    durations.append(0.1)
+
     client = OpenAI()
 
-    for i in range(1, len(segments)):
+    for i in range(1, len(segments)+1):
         sentence = segments[i-1].get('sentence')
         pause_duration = segments[i-1].get('pause')
         asset = segments[i-1].get('asset')

@@ -1,10 +1,6 @@
 from openai import OpenAI
-
 import os
 from dotenv import load_dotenv
-import asyncio
-
-from openai import ChatCompletion
 
 load_dotenv()
 
@@ -63,10 +59,10 @@ def generate_text(input_text, fileNames):
         print(content)
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-0125",
             messages=[{"role": "user", "content": content}],
             # max_tokens=150,
-            temperature=0.7,
+            temperature=0.4,
             stop=None
         )
 
@@ -78,7 +74,7 @@ def generate_text(input_text, fileNames):
         print(f"An error occurred: {e}")
         return None
 
+# example test
 # input_text = "Hey everyone, welcome back to our game dev log. Today, I'm excited to share with you the progress we've made on our latest project. It's been an incredible journey so far, filled with late nights, endless lines of code, and more cups of coffee than I can count. But seeing our vision come to life makes it all worth it. From brainstorming ideas to sketching out character designs, every step of the way has been a labor of love. And let me tell you, the challenges we've faced along the way have only made us stronger as a team. Whether it's debugging tricky code or fine-tuning game mechanics, we've tackled each obstacle head-on, fueled by our passion for creating something truly special. So stick around as we dive deeper into the development process, sharing insights, tips, and maybe even a sneak peek or two. Thanks for joining us on this adventure, and remember, the journey is just as important as the destination. Happy gaming, everyone!"
-
 # generated_text = asyncio.run(generate_text(input_text, ['welcome.mp4', 'debugging.mp4']))
 # print(generated_text)

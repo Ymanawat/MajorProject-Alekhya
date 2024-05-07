@@ -1,37 +1,43 @@
 import os
+import time
 from typing import Optional
-
-from combiner import concatenate_videos_with_audio # type: ignore
+from combiner import concatenate_videos_with_audio
+from download_images import get_photos_by_query
 from google_image import image_search
-from gptServiceToGetKeywords import getTheKeywordsFromScriptGPT
-from test import speak_with_pauses # type: ignore
+from gptServiceToGetKeywords import getTheKeywordsFromScriptGPT, getTheKeywordsFromScriptGemini
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
-
 from getVideosFromAssets import get_video_filenames
-from gptService import generate_text
-# from geminiScript import generate_text
-from xtts import speak, speak_and_save
 
-# """welcome, game developers. Today we are going to discuss the fundamental concept of game dev, collision detection."""
+from geminiScript import generate_text
+# from gptService import generate_text
 
-text = """Welcome back, folks! Today, we're going to discuss a fundamental aspect of game development: collision detection. Now, you might be wondering, what exactly is collision detection? Well, it's the process of determining when two objects in a game world intersect or come into contact with each other. This might sound straightforward, but trust me, there's a bit more to it than meets the eye.Let's delve deeper into this topic and explore how we can implement collision detection in our game"""
-
-# test_text = """{"asset": "welcome.mp4", "pause": 100 }Welcome back, folks! Today, we're going to discuss a fundamental aspect of game development: collision detection. {"asset": "collision_detection.mp4", "PAUSE": 100} Now, you might be wondering, what exactly is collision detection? {"PAUSE": 200} Well, it's the process of determining when two objects in a game world intersect or come into contact with each other. {"PAUSE": 200} This might sound straightforward, but trust me, there's a bit more to it than meets the eye. {"PAUSE": 300} Let's delve deeper into this topic and explore how we can implement collision detection in our game. {"PAUSE": 300}"""
+# uncomment one you want to use and comment another
+from gtts import speak_with_pauses
+# from openAITTS import speak_with_pauses
 
 def improve_script(script):
-    videoFiles = get_video_filenames()
-    
-    if len(videoFiles) == 0:
+    # if there are no files then we will get some images from web
+    if not get_video_filenames():
         keywords = getTheKeywordsFromScriptGPT(script)
+        # keywords = getTheKeywordsFromScriptGemini(script)
         for keyword in keywords:
             image_search(keyword)
     
+        # Wait for all image searches to complete
+        while not get_video_filenames():
+            time.sleep(1)  # Adjust sleep duration as needed
+
+    # getting the fileNames that are finally we have
     videoFiles = get_video_filenames()
+
+    # improve the script
     imp_script = generate_text(script, videoFiles)
     return imp_script
 
+
+# the data model for request body
 class ScriptData(BaseModel):
     script: str
 
@@ -39,17 +45,21 @@ app = FastAPI()
 
 @app.post("/convert-to-video")
 def create_item(script_data: ScriptData):
-    # print(script_data)
-
+    # extracting the script from req body
     script = script_data.script
+    
+    # call to transform the rough script to an full video format
     improved_script = improve_script(script)
     print(improved_script)
+
+    # sending the finally improved script to the TTS
+    # [output_audio, asset_list]
     res = speak_with_pauses(improved_script)
     output_audio = res[0]
     asset_list = res[1]
-    # [output_audio, asset_list]
+
+    # final call to merge all and produce the video
     videoFiles = get_video_filenames()
-    print('video files in main', videoFiles)
     concatenate_videos_with_audio(assets_time_list=asset_list, audio_path=output_audio, files=videoFiles)
     return
 

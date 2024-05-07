@@ -7,7 +7,7 @@ load_dotenv()
 def initialize_model():
     try:
         api_key = os.getenv('GEMINI_API_KEY')
-        # print(api_key)
+
         if api_key is None:
             raise ValueError("API key not found. Make sure it's set in the .env file.")
 
