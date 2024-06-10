@@ -1,5 +1,8 @@
 import requests
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 UNSPLASH_ROOT = 'https://api.unsplash.com'
 
@@ -8,7 +11,7 @@ async def get_photos_by_query(query, per_page=2, download_dir='assets/videos'):
     params = {
         "query": query,
         "per_page": per_page,
-        "client_id": 'FzXQznA_wzwaGrmyP75eGceTjTWqE1qSZJyMqjbcfJc'
+        "client_id": os.getenv('UNSPLASH_CLIENT_ID')
     }
     response = await requests.get(url, params=params)
 
